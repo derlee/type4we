@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "hotkey": {
+    "binding": "RAlt",
+    "activation": "push_to_talk"
+  },
+  "injection": {
+    "method": "auto"
+  },
+  "audio": {
+    "inputDevice": null
+  },
+  "overlay": {
+    "showPartials": true
+  },
+  "mode": "quick",
+  "tf_selectedASRProvider": "soniox",
+  "tf_asr_soniox": {
+    "model": "stt-rt-v6",
+    "endpointSensitivity": "-0.3",
+    "languageHints": ["zh", "en"]
+  },
+  "tf_language": "en"
+}

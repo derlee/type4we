@@ -1,0 +1,34 @@
+[[permission]]
+identifier = "allow-get-settings"
+description = "Read the settings view."
+commands.allow = ["get_settings"]
+
+[[permission]]
+identifier = "allow-save-settings"
+description = "Save settings."
+commands.allow = ["save_settings"]
+
+[[permission]]
+identifier = "allow-set-api-key"
+description = "Store the Soniox API key in Credential Manager."
+commands.allow = ["set_api_key"]
+
+[[permission]]
+identifier = "allow-clear-api-key"
+description = "Delete the stored Soniox API key."
+commands.allow = ["clear_api_key"]
+
+[[permission]]
+identifier = "allow-secret-status"
+description = "Report whether an API key is stored."
+commands.allow = ["secret_status"]
+
+[[permission]]
+identifier = "allow-list-microphones"
+description = "List input devices."
+commands.allow = ["list_microphones"]
+
+[[permission]]
+identifier = "allow-session-snapshot"
+description = "Read the current session status."
+commands.allow = ["session_snapshot"]
