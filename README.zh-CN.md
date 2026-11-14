@@ -35,7 +35,7 @@ cargo install tauri-cli --version "^2"
 cargo tauri build --bundles nsis
 ```
 
-安装包在 `src-tauri\target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`。它按当前用户安装；只有系统没有 WebView2 时才会下载引导程序。开发时运行 `cargo tauri dev`（静态页面在 1420 端口）。
+安装包在 `target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`（工作区的 target 目录，不是 `src-tauri\target`）。它按当前用户安装；只有系统没有 WebView2 时才会下载引导程序。开发时运行 `cargo tauri dev`（静态页面在 1420 端口）。
 
 然后：
 

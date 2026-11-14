@@ -21,8 +21,10 @@ cargo tauri build --bundles nsis
 
 产物：
 
-- `src-tauri\target\release\type4we.exe`
-- `src-tauri\target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`
+- `target\release\type4we.exe`
+- `target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`
+
+Cargo 把产物放在工作区的 `target` 目录，不在 `src-tauri` 下面。
 
 安装包按当前用户安装，不会要求管理员。因此进程是中等完整性，不能向提权窗口打字。见 [ADR 0003](adr/0003-text-injection.md)。
 

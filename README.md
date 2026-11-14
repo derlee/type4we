@@ -35,7 +35,7 @@ cargo install tauri-cli --version "^2"
 cargo tauri build --bundles nsis
 ```
 
-The installer is `src-tauri\target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`. It installs for the current user and downloads the WebView2 bootstrapper only if WebView2 is missing. For a dev loop: `cargo tauri dev` (serves the static UI on port 1420).
+The installer is `target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe` (the workspace target directory, not `src-tauri\target`). It installs for the current user and downloads the WebView2 bootstrapper only if WebView2 is missing. For a dev loop: `cargo tauri dev` (serves the static UI on port 1420).
 
 Then:
 

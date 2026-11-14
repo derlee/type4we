@@ -38,5 +38,5 @@ jobs:
           name: type4we-windows
           if-no-files-found: error
           path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/type4we.exe
+            target/release/bundle/nsis/*.exe
+            target/release/type4we.exe

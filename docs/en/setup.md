@@ -21,8 +21,10 @@ cargo tauri build --bundles nsis
 
 Outputs:
 
-- `src-tauri\target\release\type4we.exe`
-- `src-tauri\target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`
+- `target\release\type4we.exe`
+- `target\release\bundle\nsis\Type4We_0.1.0_x64-setup.exe`
+
+Cargo puts these in the workspace `target` directory, not under `src-tauri`.
 
 The installer is per-user (`currentUser`), so it does not ask for an administrator. That also means the process runs at medium integrity and cannot type into elevated windows. See [ADR 0003](adr/0003-text-injection.md).
 
