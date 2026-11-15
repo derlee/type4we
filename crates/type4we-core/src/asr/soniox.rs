@@ -180,14 +180,14 @@ impl AsrEngine for SonioxEngine {
         credentials: &AsrCredentials,
         options: &AsrSessionOptions,
     ) -> Result<(Box<dyn AsrWriter>, Box<dyn AsrReader>), AsrError> {
-        if credentials.api_key.trim().is_empty() {
+        let Some(api_key) = credentials.get("apiKey") else {
             return Err(AsrError::MissingCredentials);
-        }
+        };
         let start = start_message(&SonioxOptions::from(options))?;
         let mut request = SONIOX_WS_URL
             .into_client_request()
             .map_err(|err| AsrError::WebSocket(err.to_string()))?;
-        let header = HeaderValue::from_str(&format!("Bearer {}", credentials.api_key.trim()))
+        let header = HeaderValue::from_str(&format!("Bearer {api_key}"))
             .map_err(|err| AsrError::WebSocket(err.to_string()))?;
         request.headers_mut().insert("Authorization", header);
         let (socket, _response) = connect_async(request)
@@ -235,6 +235,10 @@ impl AsrWriter for SonioxWriter {
         self.send_control(finalize_message()).await?;
         // An empty *text* frame ends the stream. An empty binary frame is just silence.
         self.send_control("").await
+    }
+
+    async fn keepalive(&mut self) -> Result<(), AsrError> {
+        self.send_control(keepalive_message()).await
     }
 }
 

@@ -34,8 +34,8 @@ flowchart LR
 
   Hook --> HotkeyLogic --> Session
   WASAPI --> Resample --> Protocol
-  Protocol --> Soniox
-  Soniox --> Session
+  Protocol --> Cloud[火山引擎或 Soniox]
+  Cloud --> Session
   Session --> Plan --> SendInput
   Plan --> Clip
   UI --> Config
@@ -52,7 +52,7 @@ flowchart LR
 | --- | --- |
 | `hotkey` | 解析 `RAlt`、`Ctrl+Win` 这类绑定。判断按下/松开，并决定吞掉哪些键，避免右 Alt 打开菜单、Win 键打开开始菜单。 |
 | `audio` | 单声道混音和流式线性重采样。WASAPI 在应用 crate 里，由单独的线程持有流（`cpal::Stream` 不是 `Send`）。 |
-| `asr` | `AsrEngine` / `AsrWriter` / `AsrReader`。目前只有 Soniox。以后的本地引擎实现同一组 trait，并自己声明采样率。 |
+| `asr` | `AsrEngine` / `AsrWriter` / `AsrReader`。默认是火山引擎，Soniox 是另一家。以后的本地引擎实现同一组 trait，并自己声明采样率。 |
 | `session` | 空闲 → 启动 → 聆听 → 收尾 → 空闲。已确定的文字到了就注入。事件带会话 id，上一轮迟到的消息会被丢掉。 |
 | `inject` | 把文字规划成 UTF-16 按键。换行变成 Enter。Windows 侧用 `KEYEVENTF_UNICODE` 发送。 |
 | `config` | 读写 `%APPDATA%\Type4We\config.json`。剥掉 `apiKey` 等密钥字段。未知的 `tf_*` 分组会保留。 |
@@ -65,4 +65,4 @@ flowchart LR
 
 ## 识别插件
 
-`create_engine("soniox")` 是目前唯一的工厂分支。驱动向引擎询问 `AudioRequirements`（16 kHz、单声道、PCM s16le），再把 WASAPI 送来的音频重采样过去。加一家供应商就是新的 `AsrEngine` 和一块配置，不用改热键或注入。见 [ADR 0002](adr/0002-cloud-asr.md)。
+`create_engine` 接受 `volcano` 和 `soniox`。驱动向引擎询问 `AudioRequirements`（16 kHz 单声道 PCM；火山引擎要求 200 ms 一包），再把 WASAPI 送来的音频重采样过去。加一家供应商就是新的 `AsrEngine` 和一块配置，不用改热键或注入。见 [ADR 0002](adr/0002-cloud-asr.md) 和 [ADR 0005](adr/0005-volcengine-default.md)。

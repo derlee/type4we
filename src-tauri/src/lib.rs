@@ -72,6 +72,7 @@ pub fn run() {
             commands::save_settings,
             commands::set_api_key,
             commands::clear_api_key,
+            commands::set_volc_credentials,
             commands::secret_status,
             commands::list_microphones,
             commands::session_snapshot

@@ -8,7 +8,21 @@ const copy = {
     lblActivation: "Activation",
     ptt: "Push to talk (hold)",
     toggle: "Toggle",
-    legAsr: "Soniox",
+    legAsr: "Speech",
+    lblProvider: "Provider",
+    hintProvider: "Volcengine is the default. Soniox stays available as an alternative. Keys stay in Credential Manager.",
+    lblAuth: "Authentication",
+    authLegacy: "App ID + Access Token",
+    authApi: "API Key (new console)",
+    lblApp: "App ID",
+    lblToken: "Access Token",
+    lblVolcKey: "API Key",
+    lblResource: "Resource ID",
+    saveVolc: "Save credentials",
+    volcSaved: "Volcengine credentials saved.",
+    volcOn: "App ID and Access Token are saved.",
+    volcKeyOn: "API key is saved.",
+    volcOff: "Volcengine credentials are not saved yet.",
     hintKey: "The key is stored in Windows Credential Manager, not in the JSON config.",
     lblKey: "API key",
     saveKey: "Save key",
@@ -41,7 +55,21 @@ const copy = {
     lblActivation: "触发方式",
     ptt: "按住说话",
     toggle: "切换",
-    legAsr: "Soniox",
+    legAsr: "语音识别",
+    lblProvider: "服务",
+    hintProvider: "默认是火山引擎。Soniox 仍可作为备选。密钥保存在凭据管理器。",
+    lblAuth: "鉴权方式",
+    authLegacy: "App ID + Access Token",
+    authApi: "API Key（新版控制台）",
+    lblApp: "App ID",
+    lblToken: "Access Token",
+    lblVolcKey: "API Key",
+    lblResource: "资源 ID",
+    saveVolc: "保存凭据",
+    volcSaved: "火山引擎凭据已保存。",
+    volcOn: "已保存 App ID 和 Access Token。",
+    volcKeyOn: "已保存 API Key。",
+    volcOff: "尚未保存火山引擎凭据。",
     hintKey: "密钥存在 Windows 凭据管理器里，不会写入 JSON 配置。",
     lblKey: "API 密钥",
     saveKey: "保存密钥",
@@ -84,6 +112,17 @@ function applyCopy() {
   $("activation").options[0].textContent = text.ptt;
   $("activation").options[1].textContent = text.toggle;
   $("leg-asr").textContent = text.legAsr;
+  $("lbl-provider").textContent = text.lblProvider;
+  $("hint-provider").textContent = text.hintProvider;
+  $("provider").options[0].textContent = lang === "zh" ? "火山引擎" : "Volcengine";
+  $("lbl-auth").textContent = text.lblAuth;
+  $("volc-auth").options[0].textContent = text.authLegacy;
+  $("volc-auth").options[1].textContent = text.authApi;
+  $("lbl-app").textContent = text.lblApp;
+  $("lbl-token").textContent = text.lblToken;
+  $("lbl-volc-key").textContent = text.lblVolcKey;
+  $("lbl-resource").textContent = text.lblResource;
+  $("save-volc").textContent = text.saveVolc;
   $("hint-key").textContent = text.hintKey;
   $("lbl-key").textContent = text.lblKey;
   $("save-key").textContent = text.saveKey;
@@ -127,10 +166,36 @@ function setStatus(phase, error) {
   err.textContent = error || "";
 }
 
+function showProvider(id) {
+  const volcano = id !== "soniox";
+  $("panel-volcano").hidden = !volcano;
+  $("panel-soniox").hidden = volcano;
+  const apiKey = $("volc-auth").value === "apiKey";
+  $("volc-legacy").hidden = apiKey;
+  $("volc-apikey").hidden = !apiKey;
+}
+
+function volcStatus(settings) {
+  const text = t();
+  if (settings.volc_auth_mode === "apiKey") return settings.volc_api_key_set ? text.volcKeyOn : text.volcOff;
+  return settings.volc_app_id_set && settings.volc_access_token_set ? text.volcOn : text.volcOff;
+}
+
 function fill(settings) {
   $("binding").value = settings.binding;
   $("activation").value = settings.activation;
   $("injection").value = settings.injection_method;
+  $("provider").value = settings.provider === "soniox" ? "soniox" : "volcano";
+  $("volc-auth").value = settings.volc_auth_mode === "apiKey" ? "apiKey" : "legacy";
+  const resource = $("volc-resource");
+  const known = Array.from(resource.options).some((option) => option.value === settings.volc_resource_id);
+  if (settings.volc_resource_id && !known) {
+    const extra = document.createElement("option");
+    extra.value = settings.volc_resource_id;
+    extra.textContent = settings.volc_resource_id;
+    resource.appendChild(extra);
+  }
+  if (settings.volc_resource_id) resource.value = settings.volc_resource_id;
   $("partials").checked = settings.show_partials;
   $("model").value = settings.model;
   $("hints").value = settings.language_hints;
@@ -139,6 +204,8 @@ function fill(settings) {
   lang = String(settings.ui_language || "en").toLowerCase().startsWith("zh") ? "zh" : "en";
   applyCopy();
   $("key-state").textContent = settings.api_key_set ? t().keyOn : t().keyOff;
+  $("volc-state").textContent = volcStatus(settings);
+  showProvider($("provider").value);
   $("config-path").textContent = settings.config_path;
   const mic = $("mic");
   const current = settings.input_device || "";
@@ -183,6 +250,23 @@ document.querySelectorAll("[data-binding]").forEach((button) => {
   button.addEventListener("click", () => { $("binding").value = button.dataset.binding; });
 });
 
+$("provider").addEventListener("change", () => showProvider($("provider").value));
+$("volc-auth").addEventListener("change", () => showProvider($("provider").value));
+$("save-volc").addEventListener("click", async () => {
+  try {
+    await invoke("set_volc_credentials", {
+      appId: $("volc-app").value,
+      accessToken: $("volc-token").value,
+      apiKey: $("volc-key").value,
+    });
+    $("volc-token").value = "";
+    $("volc-key").value = "";
+    $("volc-state").textContent = t().volcSaved;
+  } catch (err) {
+    $("volc-state").textContent = String(err);
+  }
+});
+
 $("save-key").addEventListener("click", async () => {
   try {
     await invoke("set_api_key", { apiKey: $("api-key").value });
@@ -214,8 +298,20 @@ $("settings").addEventListener("submit", async (event) => {
     endpoint_sensitivity: Number($("sensitivity").value),
     language_hints: $("hints").value,
     ui_language: lang === "zh" ? "zh-CN" : "en",
+    provider: $("provider").value,
+    volc_auth_mode: $("volc-auth").value,
+    volc_resource_id: $("volc-resource").value,
   };
   try {
+    if ($("provider").value !== "soniox") {
+      await invoke("set_volc_credentials", {
+        appId: $("volc-app").value,
+        accessToken: $("volc-token").value,
+        apiKey: $("volc-key").value,
+      });
+      $("volc-token").value = "";
+      $("volc-key").value = "";
+    }
     const settings = await invoke("save_settings", { update: payload });
     fill(settings);
     $("save-state").textContent = t().saved;

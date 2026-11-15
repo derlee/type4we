@@ -13,6 +13,7 @@
     "allow-save-settings",
     "allow-set-api-key",
     "allow-clear-api-key",
+    "allow-set-volc-credentials",
     "allow-secret-status",
     "allow-list-microphones",
     "allow-session-snapshot"

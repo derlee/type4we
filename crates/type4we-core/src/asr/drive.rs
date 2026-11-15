@@ -76,7 +76,7 @@ pub async fn drive_session(mut drive: DriveSession) {
                 }
             }
             _ = keepalive.tick() => {
-                if let Err(err) = drive.writer.send_control(super::soniox::keepalive_message()).await {
+                if let Err(err) = drive.writer.keepalive().await {
                     failed = Some(err.to_string());
                     break;
                 }

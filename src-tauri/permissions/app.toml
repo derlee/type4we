@@ -19,6 +19,11 @@ description = "Delete the stored Soniox API key."
 commands.allow = ["clear_api_key"]
 
 [[permission]]
+identifier = "allow-set-volc-credentials"
+description = "Store Volcengine App ID, Access Token, or API key."
+commands.allow = ["set_volc_credentials"]
+
+[[permission]]
 identifier = "allow-secret-status"
 description = "Report whether an API key is stored."
 commands.allow = ["secret_status"]

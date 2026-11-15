@@ -13,7 +13,10 @@ pub fn credential_target(account: &str, field: &str) -> String {
 }
 
 pub const SONIOX_ACCOUNT: &str = "tf_asr_soniox";
+pub const VOLCANO_ACCOUNT: &str = "tf_asr_volcano";
 pub const API_KEY_FIELD: &str = "apiKey";
+pub const APP_KEY_FIELD: &str = "appKey";
+pub const ACCESS_KEY_FIELD: &str = "accessKey";
 
 #[derive(Debug, thiserror::Error)]
 pub enum SecretError {

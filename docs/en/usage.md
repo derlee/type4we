@@ -6,11 +6,10 @@
 
 Type4We starts in the notification area. Open **Settings** from the tray menu (left-click or right-click). The window's close button hides it; **Quit** exits the process.
 
-1. Paste a Soniox API key and choose **Save key**. The box clears. The line under it says whether a key is stored. The key is not written to `config.json`.
-2. Leave the model at `stt-rt-v6` unless you have a reason to pin `stt-rt-v5` (removed 15 December 2026).
-3. Language hints default to `zh, en`. They bias recognition; they are not a hard language lock. Clear the field to send no hints.
-4. Endpoint sensitivity defaults to `-0.3` (more patient, the Type4Me dictation preset). The Soniox range is `-1` to `1`. Higher values finalize sooner.
-5. Choose push-to-talk or toggle, then **Save**.
+1. Leave **Provider** on Volcengine. Under Doubao Speech in the [Volcengine console](https://console.volcengine.com/), create an application and enable streaming speech recognition. The default resource is `volc.seedasr.sauc.duration` (model 2.0, billed by audio duration). The other menu values are the 2.0 concurrent plan and the 1.0 `volc.bigasr.sauc.*` plans.
+2. For the legacy console, paste the App ID and Access Token and choose **Save credentials**. The token is not written back to the form. For the new console, switch Authentication to API Key and save that key instead. Neither value is stored in `config.json`.
+3. To use Soniox instead, change Provider, save a key from [console.soniox.com](https://console.soniox.com), and leave the model at `stt-rt-v6` (`stt-rt-v5` is removed 15 December 2026). Language hints default to `zh, en`. Endpoint sensitivity defaults to `-0.3`.
+4. Choose push-to-talk or toggle, then **Save**.
 
 ## Dictating
 

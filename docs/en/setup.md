@@ -49,3 +49,13 @@ The app reads `%APPDATA%\Type4We\config.json`. A missing file is created from th
 API keys are not part of that file. If a copied Type4Me `credentials.json` still contains `apiKey` or `accessKey` under a `tf_asr_*` or `tf_llm_*` object, the first load moves those strings into Credential Manager and rewrites the JSON without them. The credential target is `com.type4we.grouped:tf_asr_soniox:apiKey`.
 
 Logs append to `%APPDATA%\Type4We\logs\type4we.log`.
+
+## Volcengine credentials
+
+1. Sign in at <https://console.volcengine.com/>.
+2. Open Doubao Speech (豆包语音) and enable streaming speech recognition. Model 2.0 is the current recommendation; model 1.0 still works.
+3. Create an application. The legacy console shows an App ID and an Access Token. The new console shows an API Key. Type4We accepts either: leave Authentication on "App ID + Access Token", or switch it to "API Key".
+4. Pick a resource id. The default, `volc.seedasr.sauc.duration`, is model 2.0 billed by audio duration. `volc.seedasr.sauc.concurrent` is the concurrent plan. `volc.bigasr.sauc.duration` and `volc.bigasr.sauc.concurrent` are the model 1.0 equivalents. A mismatch here is reported by the service as not granted, not as a bad token.
+5. Save the credentials in Type4We Settings. The token or API key goes to Windows Credential Manager. `resourceId` and `authMode` are written to `%APPDATA%\Type4We\config.json` under `tf_asr_volcano`.
+
+To use Soniox instead, change the provider in that same screen and save a key from <https://console.soniox.com>.

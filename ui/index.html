@@ -45,24 +45,59 @@
         </fieldset>
 
         <fieldset>
-          <legend id="leg-asr">Soniox</legend>
-          <p class="hint" id="hint-key"></p>
-          <label id="lbl-key" for="api-key">API key</label>
-          <div class="row">
-            <input id="api-key" type="password" autocomplete="off" />
-            <button type="button" id="save-key">Save key</button>
-            <button type="button" id="clear-key" class="ghost">Clear</button>
+          <legend id="leg-asr">Speech</legend>
+          <label id="lbl-provider" for="provider">Provider</label>
+          <select id="provider" name="provider">
+            <option value="volcano">Volcengine</option>
+            <option value="soniox">Soniox</option>
+          </select>
+          <p class="hint" id="hint-provider"></p>
+
+          <div id="panel-volcano">
+            <label id="lbl-auth" for="volc-auth">Authentication</label>
+            <select id="volc-auth">
+              <option value="legacy">App ID + Access Token</option>
+              <option value="apiKey">API Key</option>
+            </select>
+            <div id="volc-legacy">
+              <label id="lbl-app" for="volc-app">App ID</label>
+              <input id="volc-app" autocomplete="off" spellcheck="false" />
+              <label id="lbl-token" for="volc-token">Access Token</label>
+              <input id="volc-token" type="password" autocomplete="off" />
+            </div>
+            <div id="volc-apikey" hidden>
+              <label id="lbl-volc-key" for="volc-key">API Key</label>
+              <input id="volc-key" type="password" autocomplete="off" />
+            </div>
+            <label id="lbl-resource" for="volc-resource">Resource ID</label>
+            <select id="volc-resource">
+              <option value="volc.seedasr.sauc.duration">volc.seedasr.sauc.duration</option>
+              <option value="volc.seedasr.sauc.concurrent">volc.seedasr.sauc.concurrent</option>
+              <option value="volc.bigasr.sauc.duration">volc.bigasr.sauc.duration</option>
+              <option value="volc.bigasr.sauc.concurrent">volc.bigasr.sauc.concurrent</option>
+            </select>
+            <div class="row">
+              <button type="button" id="save-volc">Save credentials</button>
+            </div>
+            <p id="volc-state" class="hint"></p>
           </div>
-          <p id="key-state" class="hint"></p>
 
-          <label id="lbl-model" for="model">Model</label>
-          <input id="model" name="model" value="stt-rt-v6" />
-
-          <label id="lbl-hints" for="hints">Language hints</label>
-          <input id="hints" name="hints" placeholder="zh, en" />
-
-          <label id="lbl-sensitivity" for="sensitivity">Endpoint sensitivity <span id="sensitivity-value"></span></label>
-          <input id="sensitivity" type="range" min="-1" max="1" step="0.1" />
+          <div id="panel-soniox" hidden>
+            <p class="hint" id="hint-key"></p>
+            <label id="lbl-key" for="api-key">API key</label>
+            <div class="row">
+              <input id="api-key" type="password" autocomplete="off" />
+              <button type="button" id="save-key">Save key</button>
+              <button type="button" id="clear-key" class="ghost">Clear</button>
+            </div>
+            <p id="key-state" class="hint"></p>
+            <label id="lbl-model" for="model">Model</label>
+            <input id="model" name="model" value="stt-rt-v6" />
+            <label id="lbl-hints" for="hints">Language hints</label>
+            <input id="hints" name="hints" placeholder="zh, en" />
+            <label id="lbl-sensitivity" for="sensitivity">Endpoint sensitivity <span id="sensitivity-value"></span></label>
+            <input id="sensitivity" type="range" min="-1" max="1" step="0.1" />
+          </div>
 
           <label id="lbl-mic" for="mic">Microphone</label>
           <select id="mic" name="mic">

@@ -14,7 +14,11 @@
     "showPartials": true
   },
   "mode": "quick",
-  "tf_selectedASRProvider": "soniox",
+  "tf_selectedASRProvider": "volcano",
+  "tf_asr_volcano": {
+    "authMode": "legacy",
+    "resourceId": "volc.seedasr.sauc.duration"
+  },
   "tf_asr_soniox": {
     "model": "stt-rt-v6",
     "endpointSensitivity": "-0.3",

@@ -11,7 +11,9 @@ use type4we_core::asr::{
     create_engine, drive_session, AsrCredentials, AsrSessionOptions, DriveSession, EngineEvent,
 };
 use type4we_core::hotkey::{activation_command, Binding};
-use type4we_core::secrets::{API_KEY_FIELD, SONIOX_ACCOUNT};
+use type4we_core::secrets::{
+    ACCESS_KEY_FIELD, API_KEY_FIELD, APP_KEY_FIELD, SONIOX_ACCOUNT, VOLCANO_ACCOUNT,
+};
 use type4we_core::session::{Effect, PhaseKind, Session, SessionEvent};
 
 use crate::commands::{store_status, SessionView, StatusCell};
@@ -164,27 +166,61 @@ async fn run_engine(
     stop: watch::Receiver<bool>,
     events: mpsc::UnboundedSender<EngineEvent>,
 ) -> Result<(), String> {
-    let (provider, model, hints, sensitivity, device) = {
+    let (provider, model, hints, sensitivity, resource_id, auth_mode, device) = {
         let config = shared.config.read().map_err(|err| err.to_string())?;
         (
             config.selected_asr_provider.clone(),
             config.soniox.model.clone(),
             config.soniox.language_hints.clone(),
             config.endpoint_sensitivity(),
+            config.volcano.resource_id.clone(),
+            config.volcano.auth_mode.clone(),
             config.audio.input_device.clone(),
         )
     };
-    if provider != "soniox" {
-        return Err(format!(
-            "ASR provider `{provider}` is not built into this MVP. Choose Soniox in Settings."
-        ));
+    let mut credentials = AsrCredentials::default();
+    match provider.as_str() {
+        "volcano" => {
+            for field in [APP_KEY_FIELD, ACCESS_KEY_FIELD, API_KEY_FIELD] {
+                if let Some(value) = shared
+                    .secrets
+                    .get(VOLCANO_ACCOUNT, field)
+                    .map_err(|err| err.to_string())?
+                    .filter(|value| !value.trim().is_empty())
+                {
+                    credentials.values.insert(field.to_string(), value);
+                }
+            }
+            let ready = if auth_mode == "apiKey" {
+                credentials.get(API_KEY_FIELD).is_some()
+            } else {
+                credentials.get(APP_KEY_FIELD).is_some()
+                    && credentials.get(ACCESS_KEY_FIELD).is_some()
+            };
+            if !ready {
+                return Err(
+                    "Volcengine credentials are not set. Add the App ID and Access Token in Settings."
+                        .into(),
+                );
+            }
+        }
+        "soniox" => {
+            let api_key = shared
+                .secrets
+                .get(SONIOX_ACCOUNT, API_KEY_FIELD)
+                .map_err(|err| err.to_string())?
+                .filter(|value| !value.trim().is_empty())
+                .ok_or_else(|| "Soniox API key is not set. Add it in Settings.".to_string())?;
+            credentials
+                .values
+                .insert(API_KEY_FIELD.to_string(), api_key);
+        }
+        other => {
+            return Err(format!(
+                "ASR provider `{other}` is not available. Choose Volcengine or Soniox in Settings."
+            ));
+        }
     }
-    let api_key = shared
-        .secrets
-        .get(SONIOX_ACCOUNT, API_KEY_FIELD)
-        .map_err(|err| err.to_string())?
-        .filter(|value| !value.trim().is_empty())
-        .ok_or_else(|| "Soniox API key is not set. Add it in Settings.".to_string())?;
 
     if *stop.borrow() {
         let _ = events.send(EngineEvent::Finished {
@@ -198,11 +234,13 @@ async fn run_engine(
     let capture = platform::start_capture(device.as_deref()).map_err(|err| err.to_string())?;
     let (writer, reader) = engine
         .open(
-            &AsrCredentials { api_key },
+            &credentials,
             &AsrSessionOptions {
                 model,
                 language_hints: hints,
                 endpoint_sensitivity: sensitivity,
+                resource_id,
+                auth_mode,
             },
         )
         .await

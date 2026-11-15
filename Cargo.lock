@@ -4286,6 +4286,7 @@ name = "type4we-core"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "flate2",
  "futures-util",
  "serde",
  "serde_json",
@@ -4293,6 +4294,7 @@ dependencies = [
  "thiserror 2.0.21",
  "tokio",
  "tokio-tungstenite",
+ "uuid",
 ]
 
 [[package]]

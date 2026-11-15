@@ -4,7 +4,9 @@ use tauri::State;
 use type4we_core::config::{self, Config};
 use type4we_core::hotkey::{Activation, Binding};
 use type4we_core::inject::InjectionMethod;
-use type4we_core::secrets::{API_KEY_FIELD, SONIOX_ACCOUNT};
+use type4we_core::secrets::{
+    ACCESS_KEY_FIELD, API_KEY_FIELD, APP_KEY_FIELD, SONIOX_ACCOUNT, VOLCANO_ACCOUNT,
+};
 
 use crate::platform::{self, SharedState};
 
@@ -21,6 +23,11 @@ pub struct SettingsView {
     pub ui_language: String,
     pub provider: String,
     pub api_key_set: bool,
+    pub volc_auth_mode: String,
+    pub volc_resource_id: String,
+    pub volc_app_id_set: bool,
+    pub volc_access_token_set: bool,
+    pub volc_api_key_set: bool,
     pub config_path: String,
 }
 
@@ -35,6 +42,9 @@ pub struct SettingsUpdate {
     pub endpoint_sensitivity: f64,
     pub language_hints: String,
     pub ui_language: String,
+    pub provider: String,
+    pub volc_auth_mode: String,
+    pub volc_resource_id: String,
 }
 
 #[derive(serde::Serialize)]
@@ -54,14 +64,16 @@ pub struct StatusCell(pub Mutex<SessionView>);
 #[tauri::command]
 pub fn get_settings(shared: State<SharedState>) -> Result<SettingsView, String> {
     let config = shared.config.read().map_err(|err| err.to_string())?;
-    let api_key_set = shared
-        .secrets
-        .get(SONIOX_ACCOUNT, API_KEY_FIELD)
-        .map_err(|err| err.to_string())?
-        .is_some();
+    let api_key_set = secret_set(&shared, SONIOX_ACCOUNT, API_KEY_FIELD)?;
+    let volc_app_id_set = secret_set(&shared, VOLCANO_ACCOUNT, APP_KEY_FIELD)?;
+    let volc_access_token_set = secret_set(&shared, VOLCANO_ACCOUNT, ACCESS_KEY_FIELD)?;
+    let volc_api_key_set = secret_set(&shared, VOLCANO_ACCOUNT, API_KEY_FIELD)?;
     Ok(view(
         &config,
         api_key_set,
+        volc_app_id_set,
+        volc_access_token_set,
+        volc_api_key_set,
         &shared.config_path.display().to_string(),
     ))
 }
@@ -95,7 +107,16 @@ pub fn save_settings(
             .filter(|hint| !hint.is_empty())
             .collect();
         config.language = update.ui_language;
-        config.selected_asr_provider = "soniox".into();
+        config.selected_asr_provider = match update.provider.trim() {
+            "soniox" => "soniox".into(),
+            _ => "volcano".into(),
+        };
+        if !update.volc_resource_id.trim().is_empty() {
+            config.volcano.resource_id = update.volc_resource_id.trim().to_string();
+        }
+        if matches!(update.volc_auth_mode.trim(), "legacy" | "apiKey") {
+            config.volcano.auth_mode = update.volc_auth_mode.trim().to_string();
+        }
         config.mode = "quick".into();
         config.normalize();
         config::save_to_path(&shared.config_path, &config).map_err(|err| err.to_string())?;
@@ -166,7 +187,46 @@ pub fn store_status(cell: &StatusCell, view: SessionView) {
     }
 }
 
-fn view(config: &Config, api_key_set: bool, path: &str) -> SettingsView {
+fn secret_set(shared: &SharedState, account: &str, field: &str) -> Result<bool, String> {
+    Ok(shared
+        .secrets
+        .get(account, field)
+        .map_err(|err| err.to_string())?
+        .is_some())
+}
+
+#[tauri::command]
+pub fn set_volc_credentials(
+    shared: State<SharedState>,
+    app_id: String,
+    access_token: String,
+    api_key: String,
+) -> Result<(), String> {
+    store_if_present(&shared, APP_KEY_FIELD, &app_id)?;
+    store_if_present(&shared, ACCESS_KEY_FIELD, &access_token)?;
+    store_if_present(&shared, API_KEY_FIELD, &api_key)?;
+    Ok(())
+}
+
+fn store_if_present(shared: &SharedState, field: &str, value: &str) -> Result<(), String> {
+    let value = value.trim();
+    if value.is_empty() {
+        return Ok(());
+    }
+    shared
+        .secrets
+        .set(VOLCANO_ACCOUNT, field, value)
+        .map_err(|err| err.to_string())
+}
+
+fn view(
+    config: &Config,
+    api_key_set: bool,
+    volc_app_id_set: bool,
+    volc_access_token_set: bool,
+    volc_api_key_set: bool,
+    path: &str,
+) -> SettingsView {
     SettingsView {
         binding: config.hotkey.binding.clone(),
         activation: config.hotkey.activation.as_str().into(),
@@ -179,6 +239,11 @@ fn view(config: &Config, api_key_set: bool, path: &str) -> SettingsView {
         ui_language: config.language.clone(),
         provider: config.selected_asr_provider.clone(),
         api_key_set,
+        volc_auth_mode: config.volcano.auth_mode.clone(),
+        volc_resource_id: config.volcano.resource_id.clone(),
+        volc_app_id_set,
+        volc_access_token_set,
+        volc_api_key_set,
         config_path: path.into(),
     }
 }

@@ -49,3 +49,13 @@ cargo tauri dev
 API 密钥不属于这个文件。如果拷进来的 Type4Me `credentials.json` 在 `tf_asr_*` 或 `tf_llm_*` 对象里仍有 `apiKey` 或 `accessKey`，第一次加载会把这些字符串放进凭据管理器，并写回不含密钥的 JSON。凭据目标名是 `com.type4we.grouped:tf_asr_soniox:apiKey`。
 
 日志追加到 `%APPDATA%\Type4We\logs\type4we.log`。
+
+## 火山引擎凭据
+
+1. 登录 <https://console.volcengine.com/>。
+2. 打开豆包语音，开通流式语音识别。现在更建议用 2.0；1.0 仍可用。
+3. 创建应用。旧版控制台给出 App ID 和 Access Token。新版控制台给出 API Key。Type4We 两种都收：鉴权保持「App ID + Access Token」，或改成「API Key」。
+4. 选择资源 ID。默认 `volc.seedasr.sauc.duration` 是 2.0 按时长计费。`volc.seedasr.sauc.concurrent` 是并发版。`volc.bigasr.sauc.duration` 和 `volc.bigasr.sauc.concurrent` 是 1.0 的对应项。这里写错时，服务会报未授权，而不是令牌无效。
+5. 在 Type4We 设置里保存。Token 或 API Key 进入 Windows 凭据管理器。`resourceId` 和 `authMode` 写到 `%APPDATA%\Type4We\config.json` 的 `tf_asr_volcano`。
+
+若改用 Soniox，在同一页切换服务，并到 <https://console.soniox.com> 保存密钥。

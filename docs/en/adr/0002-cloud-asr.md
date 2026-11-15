@@ -4,7 +4,7 @@
 
 ## Status
 
-Accepted for the MVP. A local engine is deliberately not implemented.
+The pluggable `AsrEngine` trait is accepted. Choosing Soniox as the only provider is superseded by [ADR 0005](0005-volcengine-default.md): Volcengine is the default, and Soniox stays as the alternative. A local engine is still not implemented.
 
 ## Context
 

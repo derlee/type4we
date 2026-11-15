@@ -34,8 +34,8 @@ flowchart LR
 
   Hook --> HotkeyLogic --> Session
   WASAPI --> Resample --> Protocol
-  Protocol --> Soniox
-  Soniox --> Session
+  Protocol --> Cloud[Volcengine or Soniox]
+  Cloud --> Session
   Session --> Plan --> SendInput
   Plan --> Clip
   UI --> Config
@@ -52,7 +52,7 @@ flowchart LR
 | --- | --- |
 | `hotkey` | Parses bindings such as `RAlt` and `Ctrl+Win`. Decides the press/release edge and which keys to swallow so Right Alt does not open menus and the Windows key does not open Start. |
 | `audio` | Mono downmix and a streaming linear resampler. WASAPI itself is in the app crate, on a thread that owns the stream (`cpal::Stream` is not `Send`). |
-| `asr` | `AsrEngine` / `AsrWriter` / `AsrReader`. Soniox is the only engine. A local engine implements the same traits and reports its own sample rate. |
+| `asr` | `AsrEngine` / `AsrWriter` / `AsrReader`. Volcengine is the default engine; Soniox is the other one. A local engine implements the same traits and reports its own sample rate. |
 | `session` | Idle → Starting → Listening → Finalizing → Idle. Final text is injected as it arrives. Events carry a session id so a late message from the previous take is ignored. |
 | `inject` | Plans UTF-16 unicode strokes. Newlines become Enter. The Windows side sends them with `KEYEVENTF_UNICODE`. |
 | `config` | Load and save `%APPDATA%\Type4We\config.json`. Strips `apiKey` and the other secret field names. Keeps unknown `tf_*` groups. |
@@ -65,4 +65,4 @@ Push-to-talk maps key-down to start and key-up to stop. Toggle maps each press t
 
 ## ASR plug
 
-`create_engine("soniox")` is the only factory branch. The driver asks the engine for `AudioRequirements` (16 kHz, mono, PCM s16le) and resamples whatever WASAPI delivered. Adding a provider means a new `AsrEngine` and a config block. It does not mean a new hotkey or injection path. See [ADR 0002](adr/0002-cloud-asr.md).
+`create_engine` accepts `volcano` and `soniox`. The driver asks the engine for `AudioRequirements` (16 kHz mono PCM; Volcengine asks for 200 ms frames) and resamples whatever WASAPI delivered. Adding a provider means a new `AsrEngine` and a config block. It does not mean a new hotkey or injection path. See [ADR 0002](adr/0002-cloud-asr.md) and [ADR 0005](adr/0005-volcengine-default.md).

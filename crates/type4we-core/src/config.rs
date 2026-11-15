@@ -16,12 +16,14 @@ use std::path::{Path, PathBuf};
 pub const CONFIG_VERSION: u32 = 1;
 pub const DEFAULT_MODEL: &str = "stt-rt-v6";
 pub const DEFAULT_BINDING: &str = "RAlt";
+pub const DEFAULT_VOLC_RESOURCE: &str = "volc.seedasr.sauc.duration";
 
 const SECRET_FIELDS: &[&str] = &[
     "apiKey",
     "api_key",
     "accessKey",
     "access_key",
+    "appKey",
     "token",
     "secret",
     "secretKey",
@@ -69,6 +71,16 @@ pub struct SonioxSettings {
     pub language_hints: Vec<String>,
 }
 
+/// Non-secret Volcengine fields. Names match Type4Me's `tf_asr_volcano` object.
+/// `appKey`, `accessKey`, and `apiKey` are stripped into Credential Manager.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VolcanoSettings {
+    #[serde(default = "default_auth_mode", rename = "authMode")]
+    pub auth_mode: String,
+    #[serde(default = "default_volc_resource", rename = "resourceId")]
+    pub resource_id: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default = "default_version")]
@@ -88,10 +100,12 @@ pub struct Config {
     pub selected_asr_provider: String,
     #[serde(default, rename = "tf_asr_soniox")]
     pub soniox: SonioxSettings,
+    #[serde(default, rename = "tf_asr_volcano")]
+    pub volcano: VolcanoSettings,
     /// UI language. `en` or a `zh` tag. Mirrors Type4Me's `tf_language` key.
     #[serde(default = "default_language", rename = "tf_language")]
     pub language: String,
-    /// Extra Type4Me keys (`tf_asr_volcano`, LLM fields, …) kept so a copied
+    /// Extra Type4Me keys (LLM fields and other providers) kept so a copied
     /// Mac file is not stripped down to the Windows subset.
     #[serde(default, flatten)]
     pub preserved: Map<String, Value>,
@@ -147,6 +161,15 @@ impl Default for OverlayConfig {
     }
 }
 
+impl Default for VolcanoSettings {
+    fn default() -> Self {
+        Self {
+            auth_mode: default_auth_mode(),
+            resource_id: default_volc_resource(),
+        }
+    }
+}
+
 impl Default for SonioxSettings {
     fn default() -> Self {
         Self {
@@ -168,6 +191,7 @@ impl Default for Config {
             mode: default_mode(),
             selected_asr_provider: default_provider(),
             soniox: SonioxSettings::default(),
+            volcano: VolcanoSettings::default(),
             language: default_language(),
             preserved: Map::new(),
         }
@@ -181,7 +205,13 @@ fn default_mode() -> String {
     "quick".into()
 }
 fn default_provider() -> String {
-    "soniox".into()
+    "volcano".into()
+}
+fn default_auth_mode() -> String {
+    "legacy".into()
+}
+fn default_volc_resource() -> String {
+    DEFAULT_VOLC_RESOURCE.into()
 }
 fn default_language() -> String {
     "en".into()
@@ -236,8 +266,19 @@ impl Config {
                 Some(trimmed.to_string())
             };
         }
-        if self.selected_asr_provider.trim().is_empty() {
-            self.selected_asr_provider = default_provider();
+        let provider = self.selected_asr_provider.trim().to_string();
+        self.selected_asr_provider = match provider.as_str() {
+            "" => default_provider(),
+            "volcengine" => "volcano".into(),
+            other => other.to_string(),
+        };
+        if self.volcano.resource_id.trim().is_empty() {
+            self.volcano.resource_id = default_volc_resource();
+        } else {
+            self.volcano.resource_id = self.volcano.resource_id.trim().to_string();
+        }
+        if self.volcano.auth_mode.trim().is_empty() {
+            self.volcano.auth_mode = default_auth_mode();
         }
         self.language = if self.language.to_ascii_lowercase().starts_with("zh") {
             "zh-CN".into()
@@ -403,9 +444,11 @@ mod tests {
         config.hotkey.activation = Activation::Toggle;
         config.soniox.model = "stt-rt-v5".into();
         config.soniox.endpoint_sensitivity = "0.3".into();
+        config.volcano.auth_mode = "apiKey".into();
+        config.volcano.resource_id = "volc.bigasr.sauc.duration".into();
         config.preserved.insert(
-            "tf_asr_volcano".into(),
-            serde_json::json!({"resourceId": "volc.seedasr.sauc.duration", "authMode": "apiKey"}),
+            "tf_llm_doubao".into(),
+            serde_json::json!({"model": "doubao-pro"}),
         );
         let dir = tempfile::tempdir().unwrap();
         let path = config_path(dir.path());
@@ -414,14 +457,20 @@ mod tests {
         assert_eq!(loaded.config.hotkey.binding, "Ctrl+Win");
         assert_eq!(loaded.config.hotkey.activation, Activation::Toggle);
         assert_eq!(loaded.config.soniox.model, "stt-rt-v5");
+        assert_eq!(loaded.config.volcano.auth_mode, "apiKey");
         assert_eq!(
-            loaded.config.preserved["tf_asr_volcano"]["resourceId"],
-            "volc.seedasr.sauc.duration"
+            loaded.config.volcano.resource_id,
+            "volc.bigasr.sauc.duration"
+        );
+        assert_eq!(
+            loaded.config.preserved["tf_llm_doubao"]["model"],
+            "doubao-pro"
         );
         let text = fs::read_to_string(&path).unwrap();
         assert!(text.contains("tf_selectedASRProvider"));
         assert!(text.contains("tf_asr_soniox"));
-        assert!(text.contains("volc.seedasr.sauc.duration"));
+        assert!(text.contains("tf_asr_volcano"));
+        assert!(text.contains("volc.bigasr.sauc.duration"));
         assert!(!text.contains("super-secret"));
     }
 
@@ -453,7 +502,19 @@ mod tests {
         assert!(outcome
             .extracted_secrets
             .iter()
-            .any(|secret| secret.account == "tf_asr_volcano" && secret.field == "accessKey"));
+            .any(|secret| secret.account == "tf_asr_volcano"
+                && secret.field == "accessKey"
+                && secret.value == "token-value"));
+        assert!(outcome
+            .extracted_secrets
+            .iter()
+            .any(|secret| secret.account == "tf_asr_volcano"
+                && secret.field == "appKey"
+                && secret.value == "app"));
+        assert_eq!(
+            outcome.config.volcano.resource_id,
+            "volc.seedasr.sauc.duration"
+        );
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("config.json");
         save_to_path(&path, &outcome.config).unwrap();
@@ -489,7 +550,11 @@ mod tests {
         let text = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         let outcome = load_from_str(&text).unwrap();
-        assert_eq!(outcome.config.selected_asr_provider, "soniox");
+        assert_eq!(outcome.config.selected_asr_provider, "volcano");
+        assert_eq!(
+            outcome.config.volcano.resource_id,
+            "volc.seedasr.sauc.duration"
+        );
         assert!(outcome.extracted_secrets.is_empty());
         assert!(outcome.config.binding().is_ok());
     }

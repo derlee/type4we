@@ -4,7 +4,7 @@
 
 ## 状态
 
-MVP 采纳。故意不实现本地引擎。
+可替换的 `AsrEngine` trait 仍然有效。把 Soniox 当成唯一供应商的决定，已被 [ADR 0005](0005-volcengine-default.md) 取代：默认是火山引擎，Soniox 留作备选。本地引擎仍然没有实现。
 
 ## 背景
 
