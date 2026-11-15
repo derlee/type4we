@@ -1,0 +1,21 @@
+{
+  "identifier": "default",
+  "description": "Settings and overlay windows can call the Type4We commands.",
+  "windows": ["settings", "overlay"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-focus",
+    "core:window:allow-unminimize",
+    "allow-get-settings",
+    "allow-save-settings",
+    "allow-set-api-key",
+    "allow-clear-api-key",
+    "allow-set-volc-credentials",
+    "allow-secret-status",
+    "allow-list-microphones",
+    "allow-session-snapshot"
+  ]
+}

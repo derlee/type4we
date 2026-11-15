@@ -1,0 +1,11 @@
+/target
+src-tauri/target
+src-tauri/gen
+**/*.rs.bk
+.DS_Store
+*.log
+node_modules
+.idea
+.vscode
+*.exe
+*.msi

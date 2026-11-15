@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Type4We</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="top">
+        <div>
+          <p class="eyebrow" id="eyebrow">Voice input</p>
+          <h1>Type4We</h1>
+        </div>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" id="lang-en" class="active">EN</button>
+          <button type="button" id="lang-zh">中文</button>
+        </div>
+      </header>
+
+      <section class="status-bar" id="status-bar">
+        <span class="dot" id="status-dot"></span>
+        <span id="status-text">Ready</span>
+      </section>
+      <p class="error" id="status-error" hidden></p>
+
+      <form id="settings">
+        <fieldset>
+          <legend id="leg-hotkey">Hotkey</legend>
+          <label id="lbl-binding" for="binding">Binding</label>
+          <input id="binding" name="binding" autocomplete="off" spellcheck="false" />
+          <div class="presets">
+            <button type="button" data-binding="RAlt">Right Alt</button>
+            <button type="button" data-binding="Ctrl+Win">Ctrl+Win</button>
+            <button type="button" data-binding="RCtrl">Right Ctrl</button>
+          </div>
+          <p class="hint" id="hint-binding"></p>
+
+          <label id="lbl-activation" for="activation">Activation</label>
+          <select id="activation" name="activation">
+            <option value="push_to_talk">Push to talk</option>
+            <option value="toggle">Toggle</option>
+          </select>
+        </fieldset>
+
+        <fieldset>
+          <legend id="leg-asr">Speech</legend>
+          <label id="lbl-provider" for="provider">Provider</label>
+          <select id="provider" name="provider">
+            <option value="volcano">Volcengine</option>
+            <option value="soniox">Soniox</option>
+          </select>
+          <p class="hint" id="hint-provider"></p>
+
+          <div id="panel-volcano">
+            <label id="lbl-auth" for="volc-auth">Authentication</label>
+            <select id="volc-auth">
+              <option value="legacy">App ID + Access Token</option>
+              <option value="apiKey">API Key</option>
+            </select>
+            <div id="volc-legacy">
+              <label id="lbl-app" for="volc-app">App ID</label>
+              <input id="volc-app" autocomplete="off" spellcheck="false" />
+              <label id="lbl-token" for="volc-token">Access Token</label>
+              <input id="volc-token" type="password" autocomplete="off" />
+            </div>
+            <div id="volc-apikey" hidden>
+              <label id="lbl-volc-key" for="volc-key">API Key</label>
+              <input id="volc-key" type="password" autocomplete="off" />
+            </div>
+            <label id="lbl-resource" for="volc-resource">Resource ID</label>
+            <select id="volc-resource">
+              <option value="volc.seedasr.sauc.duration">volc.seedasr.sauc.duration</option>
+              <option value="volc.seedasr.sauc.concurrent">volc.seedasr.sauc.concurrent</option>
+              <option value="volc.bigasr.sauc.duration">volc.bigasr.sauc.duration</option>
+              <option value="volc.bigasr.sauc.concurrent">volc.bigasr.sauc.concurrent</option>
+            </select>
+            <div class="row">
+              <button type="button" id="save-volc">Save credentials</button>
+            </div>
+            <p id="volc-state" class="hint"></p>
+          </div>
+
+          <div id="panel-soniox" hidden>
+            <p class="hint" id="hint-key"></p>
+            <label id="lbl-key" for="api-key">API key</label>
+            <div class="row">
+              <input id="api-key" type="password" autocomplete="off" />
+              <button type="button" id="save-key">Save key</button>
+              <button type="button" id="clear-key" class="ghost">Clear</button>
+            </div>
+            <p id="key-state" class="hint"></p>
+            <label id="lbl-model" for="model">Model</label>
+            <input id="model" name="model" value="stt-rt-v6" />
+            <label id="lbl-hints" for="hints">Language hints</label>
+            <input id="hints" name="hints" placeholder="zh, en" />
+            <label id="lbl-sensitivity" for="sensitivity">Endpoint sensitivity <span id="sensitivity-value"></span></label>
+            <input id="sensitivity" type="range" min="-1" max="1" step="0.1" />
+          </div>
+
+          <label id="lbl-mic" for="mic">Microphone</label>
+          <select id="mic" name="mic">
+            <option value="">System default</option>
+          </select>
+        </fieldset>
+
+        <fieldset>
+          <legend id="leg-output">Output</legend>
+          <label id="lbl-inject" for="injection">Injection</label>
+          <select id="injection" name="injection">
+            <option value="auto">Auto</option>
+            <option value="unicode">Unicode only</option>
+            <option value="clipboard">Clipboard</option>
+          </select>
+          <label class="check">
+            <input id="partials" type="checkbox" />
+            <span id="lbl-partials">Show partial text near the cursor</span>
+          </label>
+          <p class="hint" id="hint-uipi"></p>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" id="save">Save</button>
+          <span id="save-state" class="hint"></span>
+        </div>
+        <p class="hint" id="config-path"></p>
+      </form>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
